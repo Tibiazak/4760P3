@@ -1,0 +1,10 @@
+//
+// Created by Josh on 3/5/2018.
+//
+
+#include <stdio.h>
+#include <sys/types.h>
+
+int main() {
+    printf("Process %d executed and terminating.\n", getpid());
+}
