@@ -6,9 +6,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main() {
+int main(int argc, char *argv[]) {
     int clockid;
     int *clock;
+    int sharekey = atoi(argv[1]);
 
     printf("Process %d executed.\n", getpid());
 
