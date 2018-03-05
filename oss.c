@@ -15,4 +15,5 @@ int main() {
             execvp(argarray[0], argarray);
         }
     }
+    return 0;
 }

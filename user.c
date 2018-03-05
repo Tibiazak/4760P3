@@ -8,4 +8,5 @@
 
 int main() {
     printf("Process %d executed and terminating.\n", getpid());
+    return 0;
 }
