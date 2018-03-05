@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
             case 't':
                 printf("Time option\n");
                 printf("Argument is: %s\n", optarg);
-                if(isdigit(optarg))
+                if(isdigit(*optarg))
                 {
                     printf("isdigit True\n");
                     endtime = atoi(optarg);
