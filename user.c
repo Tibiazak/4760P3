@@ -7,6 +7,18 @@
 #include <unistd.h>
 
 int main() {
-    printf("Process %d executed and terminating.\n", getpid());
+    int clockid;
+    int *clock;
+
+    printf("Process %d executed.\n", getpid());
+
+    clockid = shmget(sharekey, sizeof(int), 0777);
+    clock = (int *)shmat(clockid, NULL, 0);
+
+    printf("Process %d reads the clock at %d\n", getpid(), *clock);
+
+    shmdt(clock);
+    printf("Shared memory detached.\n");
+
     return 0;
 }

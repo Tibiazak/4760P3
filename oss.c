@@ -3,13 +3,19 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define SHAREKEY 92195
+#define SHAREKEYSTR "92195"
 
 
 int main(int argc, char * argv[]) {
-    int i, pid, c;
+    int i, pid, c, clockid;
     int maxprocs = 5;
     int endtime;
-    char* argarray[] = {"./user", NULL};
+    int *clock;
+    char* argarray[] = {"./user", SHAREKEYSTR, NULL};
     char* filename;
 
     if(argc == 1)
@@ -61,6 +67,25 @@ int main(int argc, char * argv[]) {
     }
 
     printf("Finished processing command line arguments.\n");
+
+    clockid = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
+    if(clockid == -1)
+    {
+        perror("Master shmget");
+        exit(1);
+    }
+
+    clock = (int *)(shmat(clockid, 0, 0));
+    if(clock == -1)
+    {
+        perror("Master shmat");
+        exit(1);
+    }
+
+    *clock = 25;
+
+    printf("Clock is set to %d\n", *clock);
+
     for (i = 0; i < maxprocs; i++)
     {
         printf("Forking a new process\n");
@@ -79,6 +104,10 @@ int main(int argc, char * argv[]) {
             return 1;
         }
     }
+
     sleep(1);
+
+    shmdt(clock);
+    shmctl(clockid, IPC_RMID, NULL);
     return 0;
 }
