@@ -1,12 +1,56 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 
 int main() {
-    int i, pid;
+    int i, pid, c;
+    int maxprocs = 5;
+    int endtime;
     char* argarray[] = {"./user", NULL};
-    for (i = 0; i < 5; i++)
+    char* filename;
+
+    while ((c = getopt(argc, argv, "hs:l:t:")) != -1)
+    {
+        switch(c)
+        {
+            case 'h':
+                printf("Help options go here!\n");
+                break;
+            case 's':
+                if(isdigit(optarg))
+                {
+                    maxprocs = atoi(optarg);
+                }
+                else
+                {
+                    printf("Error, -s must be followed by an integer!\n");
+                    return 1;
+                }
+                break;
+            case 'l':
+                filename = optarg;
+                break;
+            case 't':
+                if(isdigit(optarg))
+                {
+                    endtime = atoi(optarg);
+                }
+                else
+                {
+                    printf("Error, -t must be followed by an integer!\n");
+                    return 1;
+                }
+                break;
+            default:
+                printf("Expected format: [-s x] -l filename -t z\n");
+                printf("-s for max number of processes, -l for log file name, and -t for number of seconds to run.\n");
+                return 1;
+        }
+    }
+
+    for (i = 0; i < maxprocs; i++)
     {
         printf("Forking a new process\n");
 
