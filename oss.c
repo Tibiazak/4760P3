@@ -12,6 +12,12 @@ int main(int argc, char * argv[]) {
     char* argarray[] = {"./user", NULL};
     char* filename;
 
+    if(argc == 1)
+    {
+        printf("ERROR: command line options required, please run ./oss -h for usage instructions.\n");
+        return 1;
+    }
+
     while ((c = getopt(argc, argv, "hs:l:t:")) != -1)
     {
         switch(c)
