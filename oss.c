@@ -37,9 +37,11 @@ int main(int argc, char * argv[]) {
                 }
                 break;
             case 'l':
+                printf("Filename option\n");
                 filename = optarg;
                 break;
             case 't':
+                printf("Time option\n");
                 if(isdigit(optarg))
                 {
                     endtime = atoi(optarg);
