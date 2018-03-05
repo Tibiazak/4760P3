@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-int main() {
+int main(int argc, char * argv[]) {
     int i, pid, c;
     int maxprocs = 5;
     int endtime;
