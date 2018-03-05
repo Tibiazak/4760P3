@@ -44,7 +44,9 @@ int main(int argc, char * argv[]) {
                 printf("Time option\n");
                 if(isdigit(optarg))
                 {
+                    printf("isdigit True\n");
                     endtime = atoi(optarg);
+                    printf("endtime set\n");
                 }
                 else
                 {
@@ -59,6 +61,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
+    printf("Finished processing command line arguments.\n");
     for (i = 0; i < maxprocs; i++)
     {
         printf("Forking a new process\n");
