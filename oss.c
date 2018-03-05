@@ -28,7 +28,7 @@ int main(int argc, char * argv[]) {
             case 's':
                 if(isdigit(optarg))
                 {
-                    maxprocs = atoi(optarg);
+                    maxprocs = atoi(&optarg);
                 }
                 else
                 {
@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
                 if(isdigit(optarg))
                 {
                     printf("isdigit True\n");
-                    endtime = atoi(optarg);
+                    endtime = atoi(&optarg);
                     printf("endtime set\n");
                 }
                 else
