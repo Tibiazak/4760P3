@@ -38,15 +38,12 @@ int main(int argc, char * argv[]) {
                 }
                 break;
             case 'l':
-                printf("Filename option\n");
                 filename = optarg;
                 printf("Log file name is: %s\n", filename);
                 break;
             case 't':
-                printf("Time option\n");
                 if(isdigit(*optarg))
                 {
-                    printf("isdigit True\n");
                     endtime = atoi(optarg);
                     printf("Max time to run: %d\n", endtime);
                 }
