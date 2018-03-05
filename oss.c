@@ -26,9 +26,10 @@ int main(int argc, char * argv[]) {
                 printf("Help options go here!\n");
                 return 0;
             case 's':
-                if(isdigit(optarg))
+                if(isdigit(*optarg))
                 {
                     maxprocs = atoi(optarg);
+                    printf("Max %d processes\n", maxprocs);
                 }
                 else
                 {
@@ -39,15 +40,15 @@ int main(int argc, char * argv[]) {
             case 'l':
                 printf("Filename option\n");
                 filename = optarg;
+                printf("Log file name is: %s\n", filename);
                 break;
             case 't':
                 printf("Time option\n");
-                printf("Argument is: %s\n", optarg);
                 if(isdigit(*optarg))
                 {
                     printf("isdigit True\n");
                     endtime = atoi(optarg);
-                    printf("endtime set\n");
+                    printf("Max time to run: %d\n", endtime);
                 }
                 else
                 {
