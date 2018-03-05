@@ -42,10 +42,10 @@ int main(int argc, char * argv[]) {
                 break;
             case 't':
                 printf("Time option\n");
+                printf("Argument is: %s\n", optarg);
                 if(isdigit(optarg))
                 {
                     printf("isdigit True\n");
-                    printf("Argument is: %s\n", optarg);
                     endtime = atoi(optarg);
                     printf("endtime set\n");
                 }
