@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
         {
             case 'h':
                 printf("Help options go here!\n");
-                break;
+                return 0;
             case 's':
                 if(isdigit(optarg))
                 {
