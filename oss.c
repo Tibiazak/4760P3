@@ -16,6 +16,9 @@
 #define SHAREKEYSTR "92195"
 #define TIMER_MSG "Received timer interrupt!\n"
 
+int ClockID;
+int *Clock;
+
 // A function from the setperiodic code, catches the interrupt and prints to screen
 static void interrupt(int signo, siginfo_t *info, void *context)
 {
@@ -24,6 +27,11 @@ static void interrupt(int signo, siginfo_t *info, void *context)
     errsave = errno;
     write(STDOUT_FILENO, TIMER_MSG, sizeof(TIMER_MSG) - 1);
     errno = errsave;
+    signal(SIGUSR1, SIG_IGN);
+    killpg(-1*getpid(), SIGUSR1);
+    shmdt(Clock);
+    shmctl(ClockID, IPC_RMID, NULL);
+    exit(1);
 }
 
 // A function from the setperiodic code, it sets up the interrupt handler
@@ -61,10 +69,9 @@ static int setperiodic(double sec)
 
 
 int main(int argc, char * argv[]) {
-    int i, pid, c, clockid;
+    int i, pid, c;
     int maxprocs = 5;
-    int endtime = 2;
-    int *clock;
+    int endtime = 5;
     char* argarray[] = {"./user", SHAREKEYSTR, NULL};
     char* filename;
 
@@ -129,23 +136,23 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    clockid = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
-    if(clockid == -1)
+    ClockID = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
+    if(ClockID == -1)
     {
         perror("Master shmget");
         exit(1);
     }
 
-    clock = (int *)(shmat(clockid, 0, 0));
-    if(clock == -1)
+    Clock = (int *)(shmat(clockid, 0, 0));
+    if(Clock == -1)
     {
         perror("Master shmat");
         exit(1);
     }
 
-    *clock = 25;
+    *Clock = 25;
 
-    printf("Clock is set to %d\n", *clock);
+    printf("Clock is set to %d\n", *Clock);
 
     for (i = 0; i < maxprocs; i++)
     {
@@ -166,9 +173,10 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    sleep(3);
+    sleep(2);
 
-    shmdt(clock);
-    shmctl(clockid, IPC_RMID, NULL);
+    shmdt(Clock);
+    shmctl(ClockID, IPC_RMID, NULL);
+    printf("Exiting normally\n");
     return 0;
 }

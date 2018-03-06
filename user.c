@@ -8,21 +8,29 @@
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <signal.h>
 
+int ClockID;
+int *Clock;
+
+static void interrupt()
+{
+    shmdt(Clock);
+    exit(1);
+}
 
 int main(int argc, char *argv[]) {
-    int clockid;
-    int *clock;
+    signal(SIGUSR1, interrupt);
     int sharekey = atoi(argv[1]);
 
     printf("Process %d executed.\n", getpid());
 
-    clockid = shmget(sharekey, sizeof(int), 0777);
-    clock = (int *)shmat(clockid, NULL, 0);
+    ClockID = shmget(sharekey, sizeof(int), 0777);
+    Clock = (int *)shmat(ClockID, NULL, 0);
 
-    printf("Process %d reads the clock at %d\n", getpid(), *clock);
+    printf("Process %d reads the clock at %d\n", getpid(), *Clock);
 
-    shmdt(clock);
+    shmdt(Clock);
     printf("Shared memory detached.\n");
 
     return 0;
