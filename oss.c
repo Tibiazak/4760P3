@@ -143,7 +143,7 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    Clock = (int *)(shmat(clockid, 0, 0));
+    Clock = (int *)(shmat(ClockID, 0, 0));
     if(Clock == -1)
     {
         perror("Master shmat");
