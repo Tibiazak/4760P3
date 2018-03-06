@@ -15,6 +15,7 @@ int *Clock;
 
 static void interrupt()
 {
+    printf("Received interrupt!\n");
     shmdt(Clock);
     exit(1);
 }
