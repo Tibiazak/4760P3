@@ -14,7 +14,7 @@
 
 #define SHAREKEY 92195
 #define SHAREKEYSTR "92195"
-
+#define TIMER_MSG "Received timer interrupt!\n"
 
 // A function from the setperiodic code, catches the interrupt and prints to screen
 static void interrupt(int signo, siginfo_t *info, void *context)
