@@ -69,9 +69,10 @@ static int setperiodic(double sec)
 
 
 int main(int argc, char * argv[]) {
+    signal(SIGINT, interrupt);
     int i, pid, c;
     int maxprocs = 5;
-    int endtime = 5;
+    int endtime = 20;
     char* argarray[] = {"./user", SHAREKEYSTR, NULL};
     char* filename;
 
