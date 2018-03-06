@@ -41,7 +41,7 @@ static int setinterrupt()
 
     act.sa_flags = SA_SIGINFO;
     act.sa_sigaction = interrupt;
-    if ((sigemptyset(&act.sa_mask) == -1) || (sigaction(SIGALRM, &act, NULL) == -1))
+    if (((sigemptyset(&act.sa_mask) == -1) || (sigaction(SIGALRM, &act, NULL) == -1)) || sigaction(SIGINT, &act, NULL == -1))
     {
         return 1;
     }
@@ -69,7 +69,7 @@ static int setperiodic(double sec)
 
 
 int main(int argc, char * argv[]) {
-    signal(SIGINT, interrupt);
+//    signal(SIGINT, interrupt);
     int i, pid, c;
     int maxprocs = 5;
     int endtime = 20;
