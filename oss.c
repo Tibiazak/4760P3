@@ -28,7 +28,7 @@ static void interrupt(int signo, siginfo_t *info, void *context)
     write(STDOUT_FILENO, TIMER_MSG, sizeof(TIMER_MSG) - 1);
     errno = errsave;
     signal(SIGUSR1, SIG_IGN);
-    killpg(-1*getpid(), SIGUSR1);
+    kill(-1*getpid(), SIGUSR1);
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
     exit(1);
