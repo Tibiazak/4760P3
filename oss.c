@@ -5,15 +5,61 @@
 #include <ctype.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/time.h>
+
 
 #define SHAREKEY 92195
 #define SHAREKEYSTR "92195"
 
 
+// A function from the setperiodic code, catches the interrupt and prints to screen
+static void interrupt(int signo, siginfo_t *info, void *context)
+{
+    int errsave;
+
+    errsave = errno;
+    write(STDOUT_FILENO, TIMER_MSG, sizeof(TIMER_MSG) - 1);
+    errno = errsave;
+}
+
+// A function from the setperiodic code, it sets up the interrupt handler
+static int setinterrupt()
+{
+    struct sigaction act;
+
+    act.sa_flags = SA_SIGINFO;
+    act.sa_sigaction = interrupt;
+    if ((sigemptyset(&act.sa_mask) == -1) || (sigaction(SIGALRM, &act, NULL) == -1))
+    {
+        return 1;
+    }
+    return 0;
+}
+
+
+// A function that sets up a timer to go off after a specified number of seconds
+// The timer only goes off once
+static int setperiodic(double sec)
+{
+    timer_t timerid;
+    struct itimerspec value;
+
+    if (timer_create(CLOCK_REALTIME, NULL, &timerid) == -1)
+    {
+        return -1;
+    }
+    value.it_value.tv_sec = (long)sec;
+    value.it_value.tv_nsec = 0;
+    value.it_interval.tv_sec = 0;
+    value.it_interval.tv_nsec = 0;
+    return timer_settime(timerid, 0, &value, NULL);
+}
+
+
 int main(int argc, char * argv[]) {
     int i, pid, c, clockid;
     int maxprocs = 5;
-    int endtime;
+    int endtime = 2;
     int *clock;
     char* argarray[] = {"./user", SHAREKEYSTR, NULL};
     char* filename;
@@ -68,6 +114,17 @@ int main(int argc, char * argv[]) {
 
     printf("Finished processing command line arguments.\n");
 
+    if (setinterrupt() == -1)
+    {
+        perror("Failed to set up handler");
+        return 1;
+    }
+    if (setperiodic((long) endtime) == -1)
+    {
+        perror("Failed to set up timer");
+        return 1;
+    }
+
     clockid = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
     if(clockid == -1)
     {
@@ -105,7 +162,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    sleep(1);
+    sleep(3);
 
     shmdt(clock);
     shmctl(clockid, IPC_RMID, NULL);
