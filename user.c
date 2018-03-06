@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     printf("Process %d reads the clock at %d\n", getpid(), *Clock);
 
-    sleep(2);
+    sleep(5);
 
     shmdt(Clock);
     printf("Shared memory detached.\n");

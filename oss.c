@@ -41,7 +41,7 @@ static int setinterrupt()
 
     act.sa_flags = SA_SIGINFO;
     act.sa_sigaction = interrupt;
-    if (((sigemptyset(&act.sa_mask) == -1) || (sigaction(SIGALRM, &act, NULL) == -1)) || sigaction(SIGINT, &act, NULL == -1))
+    if (((sigemptyset(&act.sa_mask) == -1) || (sigaction(SIGALRM, &act, NULL) == -1)) || sigaction(SIGINT, &act, NULL) == -1)
     {
         return 1;
     }
