@@ -81,13 +81,14 @@ static int setperiodic(double sec)
 
 int main(int argc, char * argv[]) {
 //    signal(SIGINT, interrupt);
-    int i, pid, c;
+    int i, pid, c, status;
     int maxprocs = 5;
     int endtime = 20;
     int pr_count = 0;
     int totalprocs = 0;
     char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
+    pid_t wait = 0;
 
     // Process command line arguments
     if(argc == 1)
