@@ -41,6 +41,11 @@ int main(int argc, char *argv[]) {
     printf("Process %d reads the clock at %d\n", getpid(), *Clock);
 
     MsgID = msgget(msgkey, 0666);
+    message.mtype = 2;
+    strcpy(message.mtext, "This is a test of two different message types.");
+    msgsnd(MsgID, &message, sizeof(message), 0);
+    sleep(2);
+
     message.mtype = 1;
     strcpy(message.mtext, "This is a test of the message queue!");
     msgsnd(MsgID, &message, sizeof(message), 0);

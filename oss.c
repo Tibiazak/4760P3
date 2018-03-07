@@ -198,6 +198,8 @@ int main(int argc, char * argv[]) {
     sleep(2);
     msgrcv(MsgID, &message, sizeof(message), 1, 0);
     printf("Message received: %s\n", message.mtext);
+    msgrcv(MsgID, &message, sizeof(message), 2, 0);
+    printf("Second message received: %s\n");
 
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
