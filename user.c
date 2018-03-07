@@ -9,6 +9,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <signal.h>
+#include <sys/msg.h>
 
 int ClockID;
 int *Clock;
