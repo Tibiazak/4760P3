@@ -10,14 +10,24 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/wait.h>
+#include <sys/msg.h>
 
 
 #define SHAREKEY 92195
 #define SHAREKEYSTR "92195"
 #define TIMER_MSG "Received timer interrupt!\n"
+#define MSGKEY 110992
+#define MSGKEYSTR "110992"
+#define BILLION 1000000000
 
 int ClockID;
 int *Clock;
+int MsgID;
+
+struct mesg_buf {
+    long mtype;
+    char mtext[100];
+} message;
 
 // A function from the setperiodic code, catches the interrupt and prints to screen
 static void interrupt(int signo, siginfo_t *info, void *context)
@@ -73,9 +83,10 @@ int main(int argc, char * argv[]) {
     int i, pid, c;
     int maxprocs = 5;
     int endtime = 20;
-    char* argarray[] = {"./user", SHAREKEYSTR, NULL};
+    char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
 
+    // Process command line arguments
     if(argc == 1)
     {
         printf("ERROR: command line options required, please run ./oss -h for usage instructions.\n");
@@ -126,6 +137,8 @@ int main(int argc, char * argv[]) {
 
     printf("Finished processing command line arguments.\n");
 
+
+    // Set the timer-kill
     if (setinterrupt() == -1)
     {
         perror("Failed to set up handler");
@@ -137,6 +150,8 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
+
+    // Allocate & attach shared memory for the clock
     ClockID = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
     if(ClockID == -1)
     {
@@ -155,6 +170,12 @@ int main(int argc, char * argv[]) {
 
     printf("Clock is set to %d\n", *Clock);
 
+
+    // Create the message queue
+    MsgID = msgget(MSGKEY, 0666 | IPC_CREAT);
+
+
+    // Fork processes
     for (i = 0; i < maxprocs; i++)
     {
         printf("Forking a new process\n");
@@ -175,9 +196,12 @@ int main(int argc, char * argv[]) {
     }
 
     sleep(2);
+    msgrcv(MsgID, &message, sizeof(message), 1, 0);
+    printf("Message received: %s\n", message.mtext);
 
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
+    msgctl(MsgID, IPC_RMID, NULL);
     printf("Exiting normally\n");
     return 0;
 }

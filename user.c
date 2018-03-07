@@ -12,6 +12,12 @@
 
 int ClockID;
 int *Clock;
+int MsgID;
+
+struct mesg_buf {
+    long mtype;
+    char mtext[100];
+} message;
 
 static void interrupt()
 {
@@ -23,6 +29,7 @@ static void interrupt()
 int main(int argc, char *argv[]) {
     signal(SIGUSR1, interrupt);
     int sharekey = atoi(argv[1]);
+    int msgkey = atoi(argv[2]);
 
     printf("Process %d executed.\n", getpid());
 
@@ -30,6 +37,11 @@ int main(int argc, char *argv[]) {
     Clock = (int *)shmat(ClockID, NULL, 0);
 
     printf("Process %d reads the clock at %d\n", getpid(), *Clock);
+
+    MsgID = msgget(MSGKEY, 0666);
+    message.mtype = 1;
+    message.mtext = "This is a test of the message queue!";
+    msgsnd(MsgID, &message, sizeof(message), 0);
 
     sleep(5);
 
