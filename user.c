@@ -10,6 +10,7 @@
 #include <sys/shm.h>
 #include <signal.h>
 #include <sys/msg.h>
+#include <string.h>
 
 int ClockID;
 int *Clock;
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
 
     MsgID = msgget(msgkey, 0666);
     message.mtype = 1;
-    strcopy(message.mtext, "This is a test of the message queue!");
+    strcpy(message.mtext, "This is a test of the message queue!");
     msgsnd(MsgID, &message, sizeof(message), 0);
 
     sleep(5);
