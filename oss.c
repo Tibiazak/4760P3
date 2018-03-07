@@ -19,6 +19,7 @@
 #define MSGKEY 110992
 #define MSGKEYSTR "110992"
 #define BILLION 1000000000
+#define PR_LIMIT 17
 
 int ClockID;
 int *Clock;
@@ -83,6 +84,7 @@ int main(int argc, char * argv[]) {
     int i, pid, c;
     int maxprocs = 5;
     int endtime = 20;
+    int pr_count = 0;
     char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
 
@@ -104,6 +106,11 @@ int main(int argc, char * argv[]) {
                 if(isdigit(*optarg))
                 {
                     maxprocs = atoi(optarg);
+                    if(maxprocs > PR_LIMIT)
+                    {
+                        printf("Error: Too many processes. No more than 17 allowed.\n");
+                        return(1);
+                    }
                     printf("Max %d processes\n", maxprocs);
                 }
                 else
@@ -181,6 +188,7 @@ int main(int argc, char * argv[]) {
         printf("Forking a new process\n");
 
         pid = fork();
+        pr_count++;
         if(pid == 0)
         {
             printf("Child executing new program\n");
@@ -195,7 +203,6 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    sleep(2);
     msgrcv(MsgID, &message, sizeof(message), 1, 0);
     printf("Message received: %s\n", message.mtext);
     msgrcv(MsgID, &message, sizeof(message), 2, 0);
@@ -204,6 +211,14 @@ int main(int argc, char * argv[]) {
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
     msgctl(MsgID, IPC_RMID, NULL);
+    while(pr_count > 0)
+    {
+        wait = waitpid(-1, &status, WNOHANG);
+        if(wait != 0)
+        {
+            pr_count--;
+        }
+    }
     printf("Exiting normally\n");
     return 0;
 }
