@@ -184,6 +184,9 @@ int main(int argc, char * argv[]) {
     // Create the message queue
     MsgID = msgget(MSGKEY, 0666 | IPC_CREAT);
 
+    message.mtype = 3; // Allows a process to enter the critical section
+    msgsnd(MsgID, &message, sizeof(message), 0);
+
 
     // Fork processes
     for (i = 0; i < maxprocs; i++)
