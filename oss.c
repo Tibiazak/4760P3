@@ -85,6 +85,7 @@ int main(int argc, char * argv[]) {
     int maxprocs = 5;
     int endtime = 20;
     int pr_count = 0;
+    int totalprocs = 0;
     char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
 
