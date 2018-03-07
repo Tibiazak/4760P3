@@ -42,6 +42,7 @@ static void interrupt(int signo, siginfo_t *info, void *context)
     kill(-1*getpid(), SIGUSR1);
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
+    msgctl(MsgID, IPC_RMID, NULL);
     exit(1);
 }
 
