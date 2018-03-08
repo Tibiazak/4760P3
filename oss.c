@@ -11,6 +11,7 @@
 #include <time.h>
 #include <sys/wait.h>
 #include <sys/msg.h>
+#include <string.h>
 #include "clock.c"
 
 
@@ -91,6 +92,11 @@ int main(int argc, char * argv[]) {
     char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
     pid_t wait = 0;
+    bool timeElapsed = False;
+    char messageString[100];
+    int proctime;
+    int procendtime;
+    char* temp;
 
     // Process command line arguments
     if(argc == 1)
@@ -177,9 +183,10 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    Clock->sec = 25;
+    Clock->sec = 0;
+    Clock->nsec = 0;
 
-    printf("Clock is set to %d\n", Clock->sec);
+    printf("Clock is set to %d:%d\n", Clock->sec, Clock->nsec);
 
 
     // Create the message queue
@@ -196,6 +203,7 @@ int main(int argc, char * argv[]) {
 
         pid = fork();
         pr_count++;
+        totalprocs++;
         if(pid == 0)
         {
             printf("Child executing new program\n");
@@ -210,10 +218,45 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    msgrcv(MsgID, &message, sizeof(message), 1, 0);
-    printf("Message received: %s\n", message.mtext);
-    msgrcv(MsgID, &message, sizeof(message), 2, 0);
-    printf("Second message received: %s\n", message.mtext);
+    while(totalprocs < 101 && !timeElapsed)
+    {
+        msgrcv(MsgID, &message, sizeof(message), 2, 0);
+        strcpy(messageString, message.mtext);
+        temp = strtok(messageString, " ");
+        proctime = atoi(temp);
+        temp = strtok(NULL, " ");
+        procendtime = atoi(temp);
+        printf("Process terminating at time %d and worked for %d\n", proctime, procendtime);
+        msgrcv(MsgID, &message, sizeof(message), 3, 0);
+        Clock->nsec += 100;
+        if (Clock->nsec > BILLION)
+        {
+            Clock->sec++;
+            Clock->nsec - BILLION;
+        }
+        if (Clock->sec == 2)
+        {
+            timeElapsed = True;
+        }
+        message.mtype = 3;
+        msgsnd(MsgID, &message, sizeof(message), 0);
+        pid = fork();
+        totalprocs++;
+        if(pid == 0)
+        {
+            if(execvp(argarray[0], argarray) < 0)
+            {
+                printf("Execution failed!\n");
+                return 1;
+            }
+        } else if(pid < 0){
+            printf("Fork failed!\n");
+            return 1;
+        }
+    }
+
+
+
 
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
