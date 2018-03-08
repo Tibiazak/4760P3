@@ -9,10 +9,17 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <signal.h>
-#include "clock.c"
+#include <sys/msg.h>
+#include <string.h>
 
 int ClockID;
-struct clock *Clock;
+int *Clock;
+int MsgID;
+
+struct mesg_buf {
+    long mtype;
+    char mtext[100];
+} message;
 
 static void interrupt()
 {
@@ -24,13 +31,24 @@ static void interrupt()
 int main(int argc, char *argv[]) {
     signal(SIGUSR1, interrupt);
     int sharekey = atoi(argv[1]);
+    int msgkey = atoi(argv[2]);
 
     printf("Process %d executed.\n", getpid());
 
     ClockID = shmget(sharekey, sizeof(int), 0777);
-    Clock = (struct clock *)shmat(ClockID, NULL, 0);
+    Clock = (int *)shmat(ClockID, NULL, 0);
 
-    printf("Process %d reads the clock at %d\n", getpid(), Clock->sec);
+    printf("Process %d reads the clock at %d\n", getpid(), *Clock);
+
+    MsgID = msgget(msgkey, 0666);
+    message.mtype = 2;
+    strcpy(message.mtext, "This is a test of two different message types.");
+    msgsnd(MsgID, &message, sizeof(message), 0);
+    sleep(2);
+
+    message.mtype = 1;
+    strcpy(message.mtext, "This is a test of the message queue!");
+    msgsnd(MsgID, &message, sizeof(message), 0);
 
     sleep(5);
 

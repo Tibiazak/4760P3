@@ -10,15 +10,25 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/wait.h>
-#include "clock.c"
+#include <sys/msg.h>
 
 
 #define SHAREKEY 92195
 #define SHAREKEYSTR "92195"
 #define TIMER_MSG "Received timer interrupt!\n"
+#define MSGKEY 110992
+#define MSGKEYSTR "110992"
+#define BILLION 1000000000
+#define PR_LIMIT 17
 
 int ClockID;
-struct clock *Clock;
+int *Clock;
+int MsgID;
+
+struct mesg_buf {
+    long mtype;
+    char mtext[100];
+} message;
 
 // A function from the setperiodic code, catches the interrupt and prints to screen
 static void interrupt(int signo, siginfo_t *info, void *context)
@@ -32,6 +42,7 @@ static void interrupt(int signo, siginfo_t *info, void *context)
     kill(-1*getpid(), SIGUSR1);
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
+    msgctl(MsgID, IPC_RMID, NULL);
     exit(1);
 }
 
@@ -71,12 +82,16 @@ static int setperiodic(double sec)
 
 int main(int argc, char * argv[]) {
 //    signal(SIGINT, interrupt);
-    int i, pid, c;
+    int i, pid, c, status;
     int maxprocs = 5;
     int endtime = 20;
-    char* argarray[] = {"./user", SHAREKEYSTR, NULL};
+    int pr_count = 0;
+    int totalprocs = 0;
+    char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
+    pid_t wait = 0;
 
+    // Process command line arguments
     if(argc == 1)
     {
         printf("ERROR: command line options required, please run ./oss -h for usage instructions.\n");
@@ -94,6 +109,11 @@ int main(int argc, char * argv[]) {
                 if(isdigit(*optarg))
                 {
                     maxprocs = atoi(optarg);
+                    if(maxprocs > PR_LIMIT)
+                    {
+                        printf("Error: Too many processes. No more than 17 allowed.\n");
+                        return(1);
+                    }
                     printf("Max %d processes\n", maxprocs);
                 }
                 else
@@ -127,6 +147,8 @@ int main(int argc, char * argv[]) {
 
     printf("Finished processing command line arguments.\n");
 
+
+    // Set the timer-kill
     if (setinterrupt() == -1)
     {
         perror("Failed to set up handler");
@@ -138,6 +160,8 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
+
+    // Allocate & attach shared memory for the clock
     ClockID = shmget(SHAREKEY, sizeof(int), 0777 | IPC_CREAT);
     if(ClockID == -1)
     {
@@ -145,22 +169,32 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    Clock = (struct clock *)(shmat(ClockID, 0, 0));
+    Clock = (int *)(shmat(ClockID, 0, 0));
     if(Clock == -1)
     {
         perror("Master shmat");
         exit(1);
     }
 
-    Clock->sec = 25;
+    *Clock = 25;
 
-    printf("Clock is set to %d\n", Clock->sec);
+    printf("Clock is set to %d\n", *Clock);
 
+
+    // Create the message queue
+    MsgID = msgget(MSGKEY, 0666 | IPC_CREAT);
+
+    message.mtype = 3; // Allows a process to enter the critical section
+    msgsnd(MsgID, &message, sizeof(message), 0);
+
+
+    // Fork processes
     for (i = 0; i < maxprocs; i++)
     {
         printf("Forking a new process\n");
 
         pid = fork();
+        pr_count++;
         if(pid == 0)
         {
             printf("Child executing new program\n");
@@ -175,10 +209,22 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    sleep(2);
+    msgrcv(MsgID, &message, sizeof(message), 1, 0);
+    printf("Message received: %s\n", message.mtext);
+    msgrcv(MsgID, &message, sizeof(message), 2, 0);
+    printf("Second message received: %s\n", message.mtext);
 
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
+    msgctl(MsgID, IPC_RMID, NULL);
+    while(pr_count > 0)
+    {
+        wait = waitpid(-1, &status, WNOHANG);
+        if(wait != 0)
+        {
+            pr_count--;
+        }
+    }
     printf("Exiting normally\n");
     return 0;
 }
