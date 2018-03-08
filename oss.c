@@ -11,6 +11,7 @@
 #include <time.h>
 #include <sys/wait.h>
 #include <sys/msg.h>
+#include "clock.c"
 
 
 #define SHAREKEY 92195
@@ -22,7 +23,7 @@
 #define PR_LIMIT 17
 
 int ClockID;
-int *Clock;
+struct clock *Clock;
 int MsgID;
 
 struct mesg_buf {
@@ -169,16 +170,16 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    Clock = (int *)(shmat(ClockID, 0, 0));
+    Clock = (struct clock *)(shmat(ClockID, 0, 0));
     if(Clock == -1)
     {
         perror("Master shmat");
         exit(1);
     }
 
-    *Clock = 25;
+    Clock->sec = 25;
 
-    printf("Clock is set to %d\n", *Clock);
+    printf("Clock is set to %d\n", Clock->sec);
 
 
     // Create the message queue

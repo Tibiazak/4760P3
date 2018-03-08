@@ -11,9 +11,10 @@
 #include <signal.h>
 #include <sys/msg.h>
 #include <string.h>
+#include "clock.c"
 
 int ClockID;
-int *Clock;
+struct clock *Clock;
 int MsgID;
 
 struct mesg_buf {
@@ -36,9 +37,9 @@ int main(int argc, char *argv[]) {
     printf("Process %d executed.\n", getpid());
 
     ClockID = shmget(sharekey, sizeof(int), 0777);
-    Clock = (int *)shmat(ClockID, NULL, 0);
+    Clock = (struct clock *)shmat(ClockID, NULL, 0);
 
-    printf("Process %d reads the clock at %d\n", getpid(), *Clock);
+    printf("Process %d reads the clock at %d\n", getpid(), Clock->sec);
 
     MsgID = msgget(msgkey, 0666);
     message.mtype = 2;
