@@ -9,9 +9,10 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <signal.h>
+#include "clock.c"
 
 int ClockID;
-int *Clock;
+struct clock *Clock;
 
 static void interrupt()
 {
@@ -27,9 +28,9 @@ int main(int argc, char *argv[]) {
     printf("Process %d executed.\n", getpid());
 
     ClockID = shmget(sharekey, sizeof(int), 0777);
-    Clock = (int *)shmat(ClockID, NULL, 0);
+    Clock = (struct clock *)shmat(ClockID, NULL, 0);
 
-    printf("Process %d reads the clock at %d\n", getpid(), *Clock);
+    printf("Process %d reads the clock at %d\n", getpid(), Clock->sec);
 
     sleep(5);
 

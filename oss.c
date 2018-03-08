@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/wait.h>
+#include "clock.c"
 
 
 #define SHAREKEY 92195
@@ -17,7 +18,7 @@
 #define TIMER_MSG "Received timer interrupt!\n"
 
 int ClockID;
-int *Clock;
+struct clock *Clock;
 
 // A function from the setperiodic code, catches the interrupt and prints to screen
 static void interrupt(int signo, siginfo_t *info, void *context)
@@ -144,16 +145,16 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    Clock = (int *)(shmat(ClockID, 0, 0));
+    Clock = (struct clock *)(shmat(ClockID, 0, 0));
     if(Clock == -1)
     {
         perror("Master shmat");
         exit(1);
     }
 
-    *Clock = 25;
+    Clock->sec = 25;
 
-    printf("Clock is set to %d\n", *Clock);
+    printf("Clock is set to %d\n", Clock->sec);
 
     for (i = 0; i < maxprocs; i++)
     {
