@@ -221,7 +221,7 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
-        fprintf("Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
+        fprintf(fp, "Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
     }
 
     msgsnd(MsgID, &message, sizeof(message), 0);
@@ -265,7 +265,7 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
-        fprintf("Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
+        fprintf(fp, "Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
         msgsnd(MsgID, &message, sizeof(message), 0);
     }
 
