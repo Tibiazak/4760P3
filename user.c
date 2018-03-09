@@ -72,12 +72,14 @@ int main(int argc, char *argv[]) {
     while(workdone < totalwork)
     {
         msgrcv(MsgID, &message, sizeof(message), 3, 0);
+        printf("Entering CS\n");
         work = rand();
         if((work + workdone) > totalwork)
         {
             work = totalwork - workdone;
         }
         Clock->nsec += work;
+        printf("Clock is: %d:%d", Clock->sec, Clock->nsec);
         if(Clock->nsec >= BILLION)
         {
             Clock->sec++;
