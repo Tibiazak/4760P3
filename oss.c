@@ -27,6 +27,7 @@
 int ClockID;
 struct clock *Clock;
 int MsgID;
+FILE *fp;
 
 struct mesg_buf {
     long mtype;
@@ -46,6 +47,7 @@ static void interrupt(int signo, siginfo_t *info, void *context)
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
     msgctl(MsgID, IPC_RMID, NULL);
+    fclose(fp);
     exit(1);
 }
 
@@ -99,8 +101,6 @@ int main(int argc, char * argv[]) {
     int procendsec;
     int procendnsec;
     char* temp;
-    FILE * fp;
-
     // Process command line arguments
     if(argc == 1)
     {
