@@ -4,5 +4,9 @@ CS4760 Project 3
 
 This program simulates an operating system enforcing mutual exclusion using message queues.
 
-Add instructions to use:
+To run this program, compile by running: make all
+
+then run ./oss [-s x] [-t z] -l filename
+where x is the max number of processes to run, z is the length of time in real time seconds for the program to run,
+and the filename is the name you would like the output file to save as.
 

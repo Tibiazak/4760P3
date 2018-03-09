@@ -137,7 +137,10 @@ int main(int argc, char * argv[]) {
         switch(c)
         {
             case 'h': // -h for help
-                printf("Help options go here!\n");
+                printf("Usage: ./oss [-s x] [-t z] -l filename\n");
+                printf("-s x: x is the maximum number of concurrent processes (default 5)\n");
+                printf("-t z: z is the number of real time seconds you would like the program to run\n");
+                printf("-l filename: filename is the name you would like the log file to have. This is a required argument\n");
                 return 0;
             case 's': // -s for max number of processes
                 if(isdigit(*optarg))
@@ -169,6 +172,11 @@ int main(int argc, char * argv[]) {
                 else
                 {
                     printf("Error, -t must be followed by an integer!\n");
+                    return 1;
+                }
+                if(endtime <= 0)
+                {
+                    printf("Error: Number of processes must be positive, please run ./oss -h for more information\n");
                     return 1;
                 }
                 break;
