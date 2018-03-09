@@ -98,6 +98,7 @@ int main(int argc, char * argv[]) {
     int proctime;
     int procendtime;
     char* temp;
+    FILE * fp;
 
     // Process command line arguments
     if(argc == 1)
@@ -222,6 +223,8 @@ int main(int argc, char * argv[]) {
         }
     }
 
+    fp = fopen(filename, "w");
+
     while(totalprocs < 101 && !timeElapsed)
     {
         msgrcv(MsgID, &message, sizeof(message), 2, 0);
@@ -230,7 +233,8 @@ int main(int argc, char * argv[]) {
         proctime = atoi(temp);
         temp = strtok(NULL, " ");
         procendtime = atoi(temp);
-        printf("Process terminating at time %d and worked for %d\n", proctime, procendtime);
+        fprintf(fp, "Master: Child process terminating at my time %d.%d, because it reached &d.&d, which lived for %d nanoseconds\n",
+                Clock->sec, Clock->nsec, procendtime, procendtime, proctime);
         msgrcv(MsgID, &message, sizeof(message), 3, 0);
         Clock->nsec += 100;
         if (Clock->nsec > BILLION)
@@ -265,6 +269,7 @@ int main(int argc, char * argv[]) {
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
     msgctl(MsgID, IPC_RMID, NULL);
+    fclose(fp);
     while(pr_count > 0)
     {
         wait = waitpid(-1, &status, WNOHANG);
