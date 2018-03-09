@@ -1,3 +1,24 @@
+/*
+ * Joshua Bearden
+ * CS 4760 Project 3
+ * Message queues & a simulated clock
+ *
+ * This is a program to simulate the basic functions of an OS.
+ * We fork child processes, they enter a mutually exclusive critical section (via message queues)
+ * and increment a "clock". Then when they terminate they send a message to the parent.
+ * The parent will, on receipt of this message, increment the "clock" and fork another process, all while
+ * logging its simulated times and activities.
+ *
+ * Functions used:
+ * Interrupt: A signal handler to catch SIGALRM and SIGINT and terminate all the processes cleanly.
+ *
+ * SetInterrupt: A function that registers Interrupt as the signal handler for SIGALRM and SIGINT.
+ *
+ * SetPeriodic: A function that sets up a timer to go off in a user-specified number of real-time seconds.
+ *
+ * In this program I did get 4 lines of code (in user.c) from StackOverflow (cited directly above said lines of code).
+ * The code is a simple solution for allowing random numbers to be generated > RAND_MAX without introducing bias.
+ */
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -24,6 +45,7 @@
 #define BILLION 1000000000
 #define PR_LIMIT 17
 
+// Declare some global variables so that shared memory can be cleaned from the interrupt handler
 int ClockID;
 struct clock *Clock;
 int MsgID;
@@ -34,7 +56,9 @@ struct mesg_buf {
     char mtext[100];
 } message;
 
-// A function from the setperiodic code, catches the interrupt and prints to screen
+// A function that catches SIGINT and SIGALRM
+// It prints an alert to the screen then sends a signal to all the child processes to terminate,
+// frees all the shared memory and closes the file.
 static void interrupt(int signo, siginfo_t *info, void *context)
 {
     int errsave;
@@ -86,7 +110,6 @@ static int setperiodic(double sec)
 
 
 int main(int argc, char * argv[]) {
-//    signal(SIGINT, interrupt);
     int i, pid, c, status;
     int maxprocs = 5;
     int endtime = 20;
@@ -101,8 +124,9 @@ int main(int argc, char * argv[]) {
     int procendsec;
     int procendnsec;
     char* temp;
+
     // Process command line arguments
-    if(argc == 1)
+    if(argc == 1) //if no arguments passed
     {
         printf("ERROR: command line options required, please run ./oss -h for usage instructions.\n");
         return 1;
@@ -112,10 +136,10 @@ int main(int argc, char * argv[]) {
     {
         switch(c)
         {
-            case 'h':
+            case 'h': // -h for help
                 printf("Help options go here!\n");
                 return 0;
-            case 's':
+            case 's': // -s for max number of processes
                 if(isdigit(*optarg))
                 {
                     maxprocs = atoi(optarg);
@@ -132,11 +156,11 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 break;
-            case 'l':
+            case 'l': // -l for filename (required!)
                 filename = optarg;
                 printf("Log file name is: %s\n", filename);
                 break;
-            case 't':
+            case 't': // -t for total running time (wall clock time)
                 if(isdigit(*optarg))
                 {
                     endtime = atoi(optarg);
@@ -148,20 +172,18 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 break;
-            default:
+            default: // anything else, fail
                 printf("Expected format: [-s x] -l filename -t z\n");
                 printf("-s for max number of processes, -l for log file name, and -t for number of seconds to run.\n");
                 return 1;
         }
     }
 
-    if(!filename)
+    if(!filename) //ensure filename was passed
     {
         printf("Error! Must specify a filename with the -l flag, please run ./oss -h for more info.\n");
         return(1);
     }
-
-    printf("Finished processing command line arguments.\n");
 
 
     // Set the timer-kill
@@ -192,16 +214,16 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
+    // initialize the clock
     Clock->sec = 0;
     Clock->nsec = 0;
-
-    printf("Clock is set to %d:%d\n", Clock->sec, Clock->nsec);
-
 
     // Create the message queue
     MsgID = msgget(MSGKEY, 0666 | IPC_CREAT);
 
     message.mtype = 3; // Allows a process to enter the critical section
+
+    // open file
     fp = fopen(filename, "w");
 
     // Fork processes
@@ -212,7 +234,7 @@ int main(int argc, char * argv[]) {
         totalprocs++;
         if(pid == 0)
         {
-            if(execvp(argarray[0], argarray) < 0)
+            if(execvp(argarray[0], argarray) < 0) //execute user
             {
                 printf("Execution failed!\n");
                 return 1;
@@ -221,14 +243,20 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
+        // output process creation to file
         fprintf(fp, "Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
     }
 
-    msgsnd(MsgID, &message, sizeof(message), 0);
+    msgsnd(MsgID, &message, sizeof(message), 0); // send the mutex signal
 
+
+    // loop while we haven't used more than 100 processes or gone over 2 simulated seconds
     while(totalprocs < 101 && !timeElapsed)
     {
+        // wait for a child to terminate and receive its message
         msgrcv(MsgID, &message, sizeof(message), 2, 0);
+
+        // process the message
         strcpy(messageString, message.mtext);
         temp = strtok(messageString, " ");
         pid = atoi(temp);
@@ -238,19 +266,27 @@ int main(int argc, char * argv[]) {
         procendnsec = atoi(temp);
         temp = strtok(NULL, " ");
         proctime = atoi(temp);
+
+        // print processed message to file
         fprintf(fp, "Master: Child %d terminating at my time %d.%d, because it reached %d.%d, which lived for %d nanoseconds\n",
                 pid, Clock->sec, Clock->nsec, procendsec, procendnsec, proctime);
+
+        // request entry to critical section
         msgrcv(MsgID, &message, sizeof(message), 3, 0);
+
+        // increment clock and ensure it is accurate and not over 2 seconds
         Clock->nsec += 100;
         if (Clock->nsec > BILLION)
         {
             Clock->sec++;
             Clock->nsec -= BILLION;
         }
-        if (Clock->sec == 2)
+        if (Clock->sec >= 2)
         {
             timeElapsed = true;
         }
+
+        // Prepare another mutex message and fork a new process
         message.mtype = 3;
         pid = fork();
         totalprocs++;
@@ -265,17 +301,21 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
+        //print process creation
         fprintf(fp, "Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
+
+        // send mutex message
         msgsnd(MsgID, &message, sizeof(message), 0);
     }
 
-
-
-
+    // we're done, detach and free shared memory and close the file
+    // then send a kill signal to the children and wait for them to exit
     shmdt(Clock);
     shmctl(ClockID, IPC_RMID, NULL);
     msgctl(MsgID, IPC_RMID, NULL);
     fclose(fp);
+    signal(SIGUSR1, SIG_IGN);
+    kill(-1*getpid(), SIGUSR1);
     while(pr_count > 0)
     {
         wait = waitpid(-1, &status, WNOHANG);
