@@ -93,7 +93,7 @@ int main(int argc, char * argv[]) {
     char* argarray[] = {"./user", SHAREKEYSTR, MSGKEYSTR, NULL};
     char* filename;
     pid_t wait = 0;
-    bool timeElapsed = False;
+    bool timeElapsed = false;
     char messageString[100];
     int proctime;
     int procendtime;
@@ -237,7 +237,7 @@ int main(int argc, char * argv[]) {
         }
         if (Clock->sec == 2)
         {
-            timeElapsed = True;
+            timeElapsed = true;
         }
         message.mtype = 3;
         msgsnd(MsgID, &message, sizeof(message), 0);
