@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
             work = totalwork - workdone;
         }
         Clock->nsec += work;
-        printf("Clock is: %d:%d", Clock->sec, Clock->nsec);
+        printf("Clock is: %d:%d\n", Clock->sec, Clock->nsec);
         if(Clock->nsec >= BILLION)
         {
             Clock->sec++;
@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
 
     message.mtype = 2;
     sprintf(message.mtext, "%d %d", donensec, totalwork);
+    printf("Message text: %s\n", message.mtext);
     shmdt(Clock);
     printf("Shared memory detached.\n");
 
