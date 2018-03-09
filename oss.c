@@ -221,7 +221,9 @@ int main(int argc, char * argv[]) {
 
     while(totalprocs < 101 && !timeElapsed)
     {
+        printf("Parent waiting for message.\n");
         msgrcv(MsgID, &message, sizeof(message), 2, 0);
+        printf("Parent received message\n");
         strcpy(messageString, message.mtext);
         temp = strtok(messageString, " ");
         proctime = atoi(temp);
