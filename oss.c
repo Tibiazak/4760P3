@@ -96,7 +96,8 @@ int main(int argc, char * argv[]) {
     bool timeElapsed = false;
     char messageString[100];
     int proctime;
-    int procendtime;
+    int procendsec;
+    int procendnsec;
     char* temp;
     FILE * fp;
 
@@ -230,11 +231,15 @@ int main(int argc, char * argv[]) {
         msgrcv(MsgID, &message, sizeof(message), 2, 0);
         strcpy(messageString, message.mtext);
         temp = strtok(messageString, " ");
-        proctime = atoi(temp);
+        pid = atoi(temp);
         temp = strtok(NULL, " ");
-        procendtime = atoi(temp);
-        fprintf(fp, "Master: Child process terminating at my time %d.%d, because it reached %d.%d, which lived for %d nanoseconds\n",
-                Clock->sec, Clock->nsec, procendtime, procendtime, proctime);
+        procendsec = atoi(temp);
+        temp = strtok(NULL, " ");
+        procendnsec = atoi(temp);
+        temp = strtok(NULL, " ");
+        proctime = atoi(temp);
+        fprintf(fp, "Master: Child %d terminating at my time %d.%d, because it reached %d.%d, which lived for %d nanoseconds\n",
+                pid, Clock->sec, Clock->nsec, procendsec, procendnsec, proctime);
         msgrcv(MsgID, &message, sizeof(message), 3, 0);
         Clock->nsec += 100;
         if (Clock->nsec > BILLION)

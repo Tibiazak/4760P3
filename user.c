@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
     }
 
     message.mtype = 2;
-    sprintf(message.mtext, "%d %d", donensec, totalwork);
+    sprintf(message.mtext, "%d %d %d %d", getpid(), donesec, donensec, totalwork);
     msgsnd(MsgID, &message, sizeof(message), 0);
 
     shmdt(Clock);
