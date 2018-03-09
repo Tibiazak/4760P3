@@ -45,12 +45,9 @@ int main(int argc, char *argv[]) {
 
     srand(time(0));
 
-    printf("Process %d executed.\n", getpid());
-
     ClockID = shmget(sharekey, sizeof(int), 0777);
     Clock = (struct clock *)shmat(ClockID, NULL, 0);
 
-    printf("Process %d reads the clock at %d\n", getpid(), Clock->sec);
 
     MsgID = msgget(msgkey, 0666);
 //    message.mtype = 2;
@@ -71,7 +68,6 @@ int main(int argc, char *argv[]) {
     x %= 1000001;
 
     totalwork = (int) x;
-    printf("Total work to do is: %d\n", totalwork);
 
     while(workdone < totalwork)
     {
@@ -83,7 +79,6 @@ int main(int argc, char *argv[]) {
             work = totalwork - workdone;
         }
         Clock->nsec += work;
-        printf("Clock is: %d:%d\n", Clock->sec, Clock->nsec);
         if(Clock->nsec >= BILLION)
         {
             Clock->sec++;
@@ -98,11 +93,8 @@ int main(int argc, char *argv[]) {
 
     message.mtype = 2;
     sprintf(message.mtext, "%d %d", donensec, totalwork);
-    printf("Message text: %s\n", message.mtext);
     msgsnd(MsgID, &message, sizeof(message), 0);
 
     shmdt(Clock);
-    printf("Shared memory detached.\n");
-
     return 0;
 }

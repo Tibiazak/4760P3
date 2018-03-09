@@ -200,14 +200,11 @@ int main(int argc, char * argv[]) {
     // Fork processes
     for (i = 0; i < maxprocs; i++)
     {
-        printf("Forking a new process\n");
-
         pid = fork();
         pr_count++;
         totalprocs++;
         if(pid == 0)
         {
-            printf("Child executing new program\n");
             if(execvp(argarray[0], argarray) < 0)
             {
                 printf("Execution failed!\n");
@@ -221,9 +218,7 @@ int main(int argc, char * argv[]) {
 
     while(totalprocs < 101 && !timeElapsed)
     {
-        printf("Parent waiting for message.\n");
         msgrcv(MsgID, &message, sizeof(message), 2, 0);
-        printf("Parent received message\n");
         strcpy(messageString, message.mtext);
         temp = strtok(messageString, " ");
         proctime = atoi(temp);
