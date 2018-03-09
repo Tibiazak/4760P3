@@ -202,8 +202,7 @@ int main(int argc, char * argv[]) {
     MsgID = msgget(MSGKEY, 0666 | IPC_CREAT);
 
     message.mtype = 3; // Allows a process to enter the critical section
-    msgsnd(MsgID, &message, sizeof(message), 0);
-
+    fp = fopen(filename, "w");
 
     // Fork processes
     for (i = 0; i < maxprocs; i++)
@@ -222,9 +221,10 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
+        fprintf("Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
     }
 
-    fp = fopen(filename, "w");
+    msgsnd(MsgID, &message, sizeof(message), 0);
 
     while(totalprocs < 101 && !timeElapsed)
     {
@@ -252,7 +252,6 @@ int main(int argc, char * argv[]) {
             timeElapsed = true;
         }
         message.mtype = 3;
-        msgsnd(MsgID, &message, sizeof(message), 0);
         pid = fork();
         totalprocs++;
         if(pid == 0)
@@ -266,6 +265,8 @@ int main(int argc, char * argv[]) {
             printf("Fork failed!\n");
             return 1;
         }
+        fprintf("Master: Creating child process %d at my time %d.%d\n", pid, Clock->sec, Clock->nsec);
+        msgsnd(MsgID, &message, sizeof(message), 0);
     }
 
 
