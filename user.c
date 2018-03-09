@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <sys/msg.h>
 #include <string.h>
+#include <time.h>
 #include "clock.c"
 
 #define BILLION 1000000000
@@ -41,6 +42,8 @@ int main(int argc, char *argv[]) {
     int work;
     int donesec;
     int donensec;
+
+    srand(time(0));
 
     printf("Process %d executed.\n", getpid());
 
