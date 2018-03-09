@@ -153,6 +153,12 @@ int main(int argc, char * argv[]) {
         }
     }
 
+    if(!filename)
+    {
+        printf("Error! Must specify a filename with the -l flag, please run ./oss -h for more info.\n");
+        return(1);
+    }
+
     printf("Finished processing command line arguments.\n");
 
 
