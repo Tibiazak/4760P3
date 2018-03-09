@@ -233,8 +233,7 @@ int main(int argc, char * argv[]) {
         proctime = atoi(temp);
         temp = strtok(NULL, " ");
         procendtime = atoi(temp);
-        fprintf(fp, "Master: Child process terminating at my time %d.%d, because it reached &d.&d, which lived for %d nanoseconds\n",
-                Clock->sec, Clock->nsec, procendtime, procendtime, proctime);
+        fprintf(fp, "Master: Child process terminating at my time %d.%d, because it reached &d.&d, which lived for %d nanoseconds\n", Clock->sec, Clock->nsec, procendtime, procendtime, proctime);
         msgrcv(MsgID, &message, sizeof(message), 3, 0);
         Clock->nsec += 100;
         if (Clock->nsec > BILLION)
