@@ -13,6 +13,8 @@
 #include <string.h>
 #include "clock.c"
 
+#define BILLION 1000000000
+
 int ClockID;
 struct clock *Clock;
 int MsgID;
@@ -33,6 +35,12 @@ int main(int argc, char *argv[]) {
     signal(SIGUSR1, interrupt);
     int sharekey = atoi(argv[1]);
     int msgkey = atoi(argv[2]);
+    unsigned long x;
+    int totalwork;
+    int workdone = 0;
+    int work;
+    int donesec;
+    int donensec;
 
     printf("Process %d executed.\n", getpid());
 
@@ -42,17 +50,48 @@ int main(int argc, char *argv[]) {
     printf("Process %d reads the clock at %d\n", getpid(), Clock->sec);
 
     MsgID = msgget(msgkey, 0666);
+//    message.mtype = 2;
+//    strcpy(message.mtext, "This is a test of two different message types.");
+//    msgsnd(MsgID, &message, sizeof(message), 0);
+//    sleep(2);
+
+//    message.mtype = 1;
+//    strcpy(message.mtext, "This is a test of the message queue!");
+//    msgsnd(MsgID, &message, sizeof(message), 0);
+
+    // The following 4 lines are taken from stackoverflow
+    // https://stackoverflow.com/questions/19870276/generate-a-random-number-from-0-to-10000000
+    // Solution to have a random number larger than MAX_RAND
+    x = rand();
+    x <<= 15;
+    x ^= rand();
+    x %= 1000001;
+
+    totalwork = (int) x;
+
+    while(workdone < totalwork)
+    {
+        msgrcv(MsgID, &message, sizeof(message), 3, 0);
+        work = rand();
+        if((work + workdone) > totalwork)
+        {
+            work = totalwork - workdone;
+        }
+        Clock->nsec += work;
+        if(Clock->nsec >= BILLION)
+        {
+            Clock->sec++;
+            Clock->nsec -= BILLION;
+        }
+        workdone += work;
+        donensec = Clock->nsec;
+        donesec = Clock->sec;
+        message.mtype = 3;
+        msgsnd(MsgID, &message, sizeof(message), 0);
+    }
+
     message.mtype = 2;
-    strcpy(message.mtext, "This is a test of two different message types.");
-    msgsnd(MsgID, &message, sizeof(message), 0);
-    sleep(2);
-
-    message.mtype = 1;
-    strcpy(message.mtext, "This is a test of the message queue!");
-    msgsnd(MsgID, &message, sizeof(message), 0);
-
-    sleep(5);
-
+    sprintf(message.mtext, "%d %d", donensec, totalwork);
     shmdt(Clock);
     printf("Shared memory detached.\n");
 

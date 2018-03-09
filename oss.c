@@ -232,7 +232,7 @@ int main(int argc, char * argv[]) {
         if (Clock->nsec > BILLION)
         {
             Clock->sec++;
-            Clock->nsec - BILLION;
+            Clock->nsec -= BILLION;
         }
         if (Clock->sec == 2)
         {
