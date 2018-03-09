@@ -13,6 +13,7 @@
 #include <sys/msg.h>
 #include <string.h>
 #include "clock.c"
+#include <stdbool.h>
 
 
 #define SHAREKEY 92195
