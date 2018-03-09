@@ -99,6 +99,8 @@ int main(int argc, char *argv[]) {
     message.mtype = 2;
     sprintf(message.mtext, "%d %d", donensec, totalwork);
     printf("Message text: %s\n", message.mtext);
+    msgsnd(MsgID, &message, sizeof(message), 0);
+
     shmdt(Clock);
     printf("Shared memory detached.\n");
 
