@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
     x %= 1000001;
 
     totalwork = (int) x;
+    printf("Total work to do is: %d\n", totalwork);
 
     while(workdone < totalwork)
     {
